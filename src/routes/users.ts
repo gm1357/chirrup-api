@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AppError } from '../errors/appError';
 
 const prisma = new PrismaClient;
 
@@ -22,21 +23,26 @@ usersRoutes.post('/', async (req: Request, res: Response) => {
 usersRoutes.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const users = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
         where: { id: parseInt(id) }
     });
-    return res.status(200).json(users);
+
+    if (!user) {
+        throw new AppError('User not found', 404);
+    }
+
+    return res.status(200).json(user);
 });
 
 usersRoutes.put('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { email, username, password } = req.body;
 
-    const users = await prisma.user.update({
+    const user = await prisma.user.update({
         where: { id: parseInt(id) },
         data: { email, username, password }
     });
-    return res.status(200).json(users);
+    return res.status(200).json(user);
 });
 
 usersRoutes.delete('/:id', async (req: Request, res: Response) => {
